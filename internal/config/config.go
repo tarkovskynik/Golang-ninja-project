@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/kelseyhightower/envconfig"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"time"
 )
