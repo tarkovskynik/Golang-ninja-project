@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
 	"net/http"
 	"strings"
 
@@ -37,15 +38,15 @@ func (h *Handler) authMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := h.getTokenFromRequest(c)
 		if err != nil {
-			logError("authMiddleware", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "parse token error"})
+			logger.LogError("authMiddleware", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.Response{Error: "parse token error"})
 			return
 		}
 
 		id, err := h.usersService.ParseToken(token)
 		if err != nil {
-			logError("authMiddleware", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "accessToken invalid or expired"})
+			logger.LogError("authMiddleware", err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.Response{Error: "accessToken invalid or expired"})
 			return
 		}
 		logrus.Infof("id %d", id)

@@ -3,41 +3,8 @@ package config
 import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/viper"
-	"time"
+	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
 )
-
-type NetServerConfig struct {
-	Host string
-	Port int
-}
-
-type PostgresConfig struct {
-	Host     string
-	Port     int
-	Username string
-	Name     string
-	SSLMode  string
-	Password string
-}
-
-type AuthConfig struct {
-	AccessTokenTTL  time.Duration `mapstructure:"access_token_ttl"`
-	RefreshTokenTTL time.Duration `mapstructure:"refresh_token_ttl"`
-	Salt            string
-	Secret          string
-}
-
-type FileConfig struct {
-	Size       int
-	Extensions []string
-}
-
-type Config struct {
-	Server   NetServerConfig
-	Postgres PostgresConfig
-	Auth     AuthConfig
-	File     FileConfig
-}
 
 func parseConfigFile(configDir string) error {
 	viper.AddConfigPath(configDir)
@@ -50,7 +17,7 @@ func parseConfigFile(configDir string) error {
 	return nil
 }
 
-func unmarshal(cfg *Config) error {
+func unmarshal(cfg *domain.Config) error {
 	if err := viper.UnmarshalKey("serverListener.tcp", &cfg.Server); err != nil {
 		return err
 	}
@@ -63,7 +30,7 @@ func unmarshal(cfg *Config) error {
 	return nil
 }
 
-func setFromEnv(cfg *Config) error {
+func setFromEnv(cfg *domain.Config) error {
 	if err := envconfig.Process("db", &cfg.Postgres); err != nil {
 		return err
 	}
@@ -74,13 +41,13 @@ func setFromEnv(cfg *Config) error {
 	return nil
 }
 
-func Init(configDir string) (*Config, error) {
+func Init(configDir string) (*domain.Config, error) {
 	viper.SetConfigName("config")
 	if err := parseConfigFile(configDir); err != nil {
 		return nil, err
 	}
 
-	var cfg Config
+	var cfg domain.Config
 	if err := unmarshal(&cfg); err != nil {
 		return nil, err
 	}

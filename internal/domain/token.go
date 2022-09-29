@@ -8,7 +8,3 @@ type Token struct {
 	Token     string
 	ExpiresAt time.Time
 }
-
-type TokenResponse struct {
-	Token string `json:"accessToken"`
-}

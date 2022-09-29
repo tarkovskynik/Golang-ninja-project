@@ -3,6 +3,7 @@ package rest
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
 	"net/http"
 
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
@@ -15,26 +16,26 @@ import (
 // @Accept  json
 // @Produce json
 // @Param   input body     domain.SignUpInput          true "account info"
-// @Success 201   {object} domain.StatusResponse
-// @Failure 400   {object} domain.ErrorResponse
-// @Failure 500   {object} domain.ErrorResponse
+// @Success 201   {object} domain.Response
+// @Failure 400   {object} domain.Response
+// @Failure 500   {object} domain.Response
 // @Router /auth/sign-up [post]
 func (h *Handler) signUp(c *gin.Context) {
 	var input domain.SignUpInput
 	if err := c.BindJSON(&input); err != nil {
-		logError("signUp", err)
-		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "invalid user input param"})
+		logger.LogError("signUp", err)
+		c.JSON(http.StatusBadRequest, domain.Response{Error: domain.ErrUserInputParam.Error()})
 		return
 	}
 
 	err := h.usersService.SignUp(c.Request.Context(), input)
 	if err != nil {
-		logError("signUp", err)
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "can't create user"})
+		logger.LogError("signUp", err)
+		c.JSON(http.StatusInternalServerError, domain.Response{Error: "can't create user"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, domain.StatusResponse{Status: "ok"})
+	c.JSON(http.StatusCreated, domain.Response{Status: "ok"})
 }
 
 // @Summary SignIn
@@ -44,55 +45,55 @@ func (h *Handler) signUp(c *gin.Context) {
 // @Accept  json
 // @Produce json
 // @Param   input body     domain.SignInInput          true "account credentials"
-// @Success 201   {object} domain.StatusResponse
-// @Failure 400   {object} domain.ErrorResponse
-// @Failure 500   {object} domain.ErrorResponse
+// @Success 201   {object} domain.Response
+// @Failure 400   {object} domain.Response
+// @Failure 500   {object} domain.Response
 // @Router /auth/sign-in [post]
 func (h *Handler) signIn(c *gin.Context) {
 	var input domain.SignInInput
 	if err := c.BindJSON(&input); err != nil {
-		logError("signIn", err)
-		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "invalid user input param"})
+		logger.LogError("signIn", err)
+		c.JSON(http.StatusBadRequest, domain.Response{Error: domain.ErrUserInputParam.Error()})
 		return
 	}
 
 	accessToken, refreshToken, err := h.usersService.SignIn(c.Request.Context(), input)
 	if err != nil {
-		logError("signIn", err)
+		logger.LogError("signIn", err)
 		if errors.Is(err, domain.ErrUserNotFound) {
-			c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: domain.ErrUserNotFound.Error()})
+			c.JSON(http.StatusBadRequest, domain.Response{Error: domain.ErrUserNotFound.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "search user error"})
+		c.JSON(http.StatusInternalServerError, domain.Response{Error: "search user error"})
 		return
 	}
 	refreshTokenTTL := h.usersService.GetRefreshTokenTTL().Seconds()
 	c.SetCookie("refresh-token", refreshToken, int(refreshTokenTTL), "/", "localhost", false, true)
-	c.JSON(http.StatusOK, domain.TokenResponse{Token: accessToken})
+	c.JSON(http.StatusOK, domain.Response{Status: "ok", Token: accessToken})
 }
 
 // @Summary     Refresh
 // @Description Refresh tokens
 // @Tags        auth
 // @Produce     json
-// @Success     200     {object} domain.TokenResponse
-// @Failure     400,500 {object} domain.ErrorResponse
+// @Success     200     {object} domain.Response
+// @Failure     400,500 {object} domain.Response
 // @Router      /auth/refresh [get]
 func (h *Handler) refresh(c *gin.Context) {
 	cookie, err := c.Cookie("refresh-token")
 	if err != nil {
-		logError("refresh", err)
-		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "parse refresh token error"})
+		logger.LogError("refresh", err)
+		c.JSON(http.StatusBadRequest, domain.Response{Error: "parse refresh token error"})
 		return
 	}
 
 	accessToken, refreshToken, err := h.usersService.RefreshTokens(c.Request.Context(), cookie)
 	if err != nil {
-		logError("refresh", err)
-		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "refresh tokens error"})
+		logger.LogError("refresh", err)
+		c.JSON(http.StatusInternalServerError, domain.Response{Error: "refresh tokens error"})
 		return
 	}
 	refreshTokenTTL := h.usersService.GetRefreshTokenTTL().Seconds()
 	c.SetCookie("refresh-token", refreshToken, int(refreshTokenTTL), "/", "localhost", false, true)
-	c.JSON(http.StatusOK, domain.TokenResponse{Token: accessToken})
+	c.JSON(http.StatusOK, domain.Response{Status: "ok", Token: accessToken})
 }
