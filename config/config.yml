@@ -1,0 +1,14 @@
+serverListener:
+  tcp:
+    host: "127.0.0.1"
+    port: 8080
+
+file:
+    size: 10
+    extensions:
+               png
+               jpg
+
+auth:
+  access_token_ttl: 15m
+  refresh_token_ttl: 720h
