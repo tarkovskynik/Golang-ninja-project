@@ -31,7 +31,7 @@ func (h *Handler) signUp(c *gin.Context) {
 	err := h.usersService.SignUp(c.Request.Context(), input)
 	if err != nil {
 		logger.LogError("signUp", err)
-		c.JSON(http.StatusInternalServerError, domain.Response{Error: "can't create user"})
+		c.JSON(http.StatusInternalServerError, domain.Response{Error: domain.ErrCantCreateUser.Error()})
 		return
 	}
 
@@ -60,11 +60,11 @@ func (h *Handler) signIn(c *gin.Context) {
 	accessToken, refreshToken, err := h.usersService.SignIn(c.Request.Context(), input)
 	if err != nil {
 		logger.LogError("signIn", err)
-		if errors.Is(err, domain.ErrUserNotFound) {
-			c.JSON(http.StatusBadRequest, domain.Response{Error: domain.ErrUserNotFound.Error()})
+		if errors.Is(err, domain.ErrUserCredNotFound) {
+			c.JSON(http.StatusBadRequest, domain.Response{Error: domain.ErrSearchUserError.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, domain.Response{Error: "search user error"})
+		c.JSON(http.StatusInternalServerError, domain.Response{Error: domain.ErrSearchUserError.Error()})
 		return
 	}
 	refreshTokenTTL := h.usersService.GetRefreshTokenTTL().Seconds()
@@ -83,14 +83,14 @@ func (h *Handler) refresh(c *gin.Context) {
 	cookie, err := c.Cookie("refresh-token")
 	if err != nil {
 		logger.LogError("refresh", err)
-		c.JSON(http.StatusBadRequest, domain.Response{Error: "parse refresh token error"})
+		c.JSON(http.StatusBadRequest, domain.Response{Error: domain.ErrRefreshTokenParse.Error()})
 		return
 	}
 
 	accessToken, refreshToken, err := h.usersService.RefreshTokens(c.Request.Context(), cookie)
 	if err != nil {
 		logger.LogError("refresh", err)
-		c.JSON(http.StatusInternalServerError, domain.Response{Error: "refresh tokens error"})
+		c.JSON(http.StatusInternalServerError, domain.Response{Error: domain.ErrRefreshToken.Error()})
 		return
 	}
 	refreshTokenTTL := h.usersService.GetRefreshTokenTTL().Seconds()

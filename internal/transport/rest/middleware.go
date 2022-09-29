@@ -39,14 +39,14 @@ func (h *Handler) authMiddleware() gin.HandlerFunc {
 		token, err := h.getTokenFromRequest(c)
 		if err != nil {
 			logger.LogError("authMiddleware", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.Response{Error: "parse token error"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.Response{Error: domain.ErrAccessTokenParse.Error()})
 			return
 		}
 
 		id, err := h.usersService.ParseToken(token)
 		if err != nil {
 			logger.LogError("authMiddleware", err)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.Response{Error: "accessToken invalid or expired"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, domain.Response{Error: domain.ErrAccessTokenExpired.Error()})
 			return
 		}
 		logrus.Infof("id %d", id)

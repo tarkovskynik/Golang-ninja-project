@@ -81,7 +81,7 @@ func (s *Users) SignIn(ctx context.Context, inp domain.SignInInput) (string, str
 	user, err := s.userRepo.GetByCredentials(ctx, inp.Email, password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", domain.ErrUserNotFound
+			return "", "", domain.ErrUserCredNotFound
 		}
 
 		return "", "", err
