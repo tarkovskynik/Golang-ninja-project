@@ -2,13 +2,14 @@ package rest
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 	"time"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "github.com/tarkovskynik/Golang-ninja-project/docs"
 )
 
@@ -41,11 +42,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		usersApi.GET("/refresh", h.refresh)
 	}
 
-	//filesApi := router.Group("")
-	//filesApi.Use(h.authMiddleware())
-	//{
-	//	filesApi.POST("/upload")
-	//	filesApi.GET("/files")
-	//}
+	filesApi := router.Group("")
+	filesApi.Use(h.authMiddleware())
+	{
+		filesApi.POST("/upload", h.fileUploadS3)
+		filesApi.GET("/files", h.getFilesS3)
+	}
+
 	return router
 }
