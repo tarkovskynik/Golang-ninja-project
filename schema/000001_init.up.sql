@@ -21,6 +21,5 @@ create table files (
  size         int not null,
  type         varchar(20) not null,
  content_type varchar(20) not null,
- url          varchar(255) not null,
  upload_at    timestamp not null default now()
 );

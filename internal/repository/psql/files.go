@@ -16,13 +16,13 @@ func NewFiles(db *sql.DB) *Files {
 }
 
 func (r *Files) StoreFileInfo(ctx context.Context, input domain.File) error {
-	query := "INSERT INTO files(user_id, name, size, type, content_type, url, upload_at) VALUES ($1, $2, $3, $4, $5, $6, $7)"
-	_, err := r.db.ExecContext(ctx, query, input.UserID, input.Name, input.Size, input.Type, input.ContentType, input.URL, input.UploadAt)
+	query := "INSERT INTO files(user_id, name, size, type, content_type, upload_at) VALUES ($1, $2, $3, $4, $5, $6)"
+	_, err := r.db.ExecContext(ctx, query, input.UserID, input.Name, input.Size, input.Type, input.ContentType, input.UploadAt)
 	return err
 }
 
 func (r *Files) GetFiles(ctx context.Context, id int) ([]domain.File, error) {
-	query := "SELECT id, user_id, name, size, type, content_type, url, upload_at FROM files WHERE user_id=$1"
+	query := "SELECT id, user_id, name, size, type, content_type, upload_at FROM files WHERE user_id=$1"
 	rows, err := r.db.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (r *Files) GetFiles(ctx context.Context, id int) ([]domain.File, error) {
 	var files []domain.File
 	for rows.Next() {
 		var file domain.File
-		err = rows.Scan(&file.ID, &file.UserID, &file.Name, &file.Size, &file.Type, &file.ContentType, &file.URL, &file.UploadAt)
+		err = rows.Scan(&file.ID, &file.UserID, &file.Name, &file.Size, &file.Type, &file.ContentType, &file.UploadAt)
 		if err != nil {
 			return nil, err
 		}
