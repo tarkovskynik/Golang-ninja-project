@@ -21,13 +21,28 @@ type Users interface {
 	GetRefreshTokenTTL() time.Duration
 }
 
-type Handler struct {
-	usersService Users
+type FilesServece interface {
+	Upload(ctx context.Context, input domain.File) (string, error)
+	GetFiles(ctx context.Context, id int) ([]domain.File, error)
+	StoreFileInfo(ctx context.Context, input domain.File) error
 }
 
-func NewHandler(users Users) *Handler {
+type Handler struct {
+	usersService Users
+	filesService FilesServece
+	cfg          *domain.Config
+}
+
+func NewHandler(cfg *domain.Config, users Users, files FilesServece) *Handler {
+	cfg.File.MaxUploadSize = cfg.File.MaxUploadSize << 20 // 10 megabytes = 10 << 20
+	cfg.File.CheckTypes = make(map[string]interface{})    // "image/jpeg": nil, "image/png": nil, ...
+	for _, t := range cfg.File.Types {
+		cfg.File.CheckTypes[t] = nil
+	}
 	return &Handler{
 		usersService: users,
+		filesService: files,
+		cfg:          cfg,
 	}
 }
 
@@ -42,7 +57,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		usersApi.GET("/refresh", h.refresh)
 	}
 
-	filesApi := router.Group("")
+	filesApi := router.Group("/s3")
 	filesApi.Use(h.authMiddleware())
 	{
 		filesApi.POST("/upload", h.fileUploadS3)

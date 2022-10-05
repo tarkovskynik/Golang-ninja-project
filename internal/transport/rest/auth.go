@@ -2,9 +2,10 @@ package rest
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
-	"net/http"
 
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
 )
@@ -69,7 +70,7 @@ func (h *Handler) signIn(c *gin.Context) {
 	}
 	refreshTokenTTL := h.usersService.GetRefreshTokenTTL().Seconds()
 	c.SetCookie("refresh-token", refreshToken, int(refreshTokenTTL), "/", "localhost", false, true)
-	c.JSON(http.StatusOK, domain.Response{Status: "ok", Token: accessToken})
+	c.JSON(http.StatusOK, domain.Response{Status: "ok", Token: "Bearer " + accessToken})
 }
 
 // @Summary     Refresh

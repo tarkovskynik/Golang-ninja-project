@@ -1,9 +1,14 @@
 package config
 
 import (
+	"runtime"
+
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/viper"
+
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
+	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
 )
 
 func parseConfigFile(configDir string) error {
@@ -31,6 +36,15 @@ func unmarshal(cfg *domain.Config) error {
 }
 
 func setFromEnv(cfg *domain.Config) error {
+
+	if runtime.GOOS == "windows" {
+		// windows specific code here...
+		err := godotenv.Load()
+		if err != nil {
+			logger.Fatalf("Error loading .env file")
+		}
+	}
+
 	if err := envconfig.Process("db", &cfg.Postgres); err != nil {
 		return err
 	}
@@ -55,4 +69,11 @@ func Init(configDir string) (*domain.Config, error) {
 		return nil, err
 	}
 	return &cfg, nil
+}
+
+func init() {
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	logrus.Fatal("Error loading .env file")
+	// }
 }

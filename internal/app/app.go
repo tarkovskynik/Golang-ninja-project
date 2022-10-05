@@ -13,21 +13,12 @@ import (
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/database"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/hash"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
+	"github.com/tarkovskynik/Golang-ninja-project/pkg/s3"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/server/http"
 
 	_ "github.com/lib/pq"
 )
 
-// @title File Manager App API
-// @version 1.0
-// @description API Server for File Manager Application
-
-// @host localhost:8080
-// @BasePath /
-
-// @securityDefinitions.apikey JWT
-// @in header
-// @name Authorization
 func init() {
 	logger.InitLogParams()
 }
@@ -48,7 +39,14 @@ func Run(configDir string) {
 	hasher := hash.NewSHA1Hasher(cfg.Auth.Salt)
 	usersService := service.NewUsers(usersRepo, tokensRepo, hasher, []byte(cfg.Auth.Secret), cfg.Auth.AccessTokenTTL, cfg.Auth.RefreshTokenTTL)
 
-	handler := rest.NewHandler(usersService)
+	filesRepo := psql.NewFiles(db)
+	s3, err := s3.NewFileStorage(context.Background(), cfg.File.Storage)
+	if err != nil {
+		logger.Fatalf("error occurred while running s3 server: %s", err.Error())
+	}
+	filesService := service.NewServeceFiles(filesRepo, s3)
+
+	handler := rest.NewHandler(cfg, usersService, filesService)
 	server := http.NewServer()
 
 	go func() {

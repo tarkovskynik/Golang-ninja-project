@@ -1,8 +1,33 @@
+basePath: /
 definitions:
-  domain.ErrorResponse:
+  domain.File:
     properties:
+      contentType:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+      type:
+        type: string
+      uploadAt:
+        type: string
+      url:
+        type: string
+    type: object
+  domain.Response:
+    properties:
+      accessToken:
+        example: token string
+        type: string
       error:
         example: error message
+        type: string
+      status:
+        example: ok
+        type: string
+      url:
+        example: File download URL
         type: string
     type: object
   domain.SignInInput:
@@ -35,19 +60,12 @@ definitions:
     - password
     - surname
     type: object
-  domain.StatusResponse:
-    properties:
-      status:
-        example: ok
-        type: string
-    type: object
-  domain.TokenResponse:
-    properties:
-      accessToken:
-        type: string
-    type: object
+host: localhost:8080
 info:
   contact: {}
+  description: API Server for File Manager Application
+  title: File Manager App API
+  version: "1.0"
 paths:
   /auth/refresh:
     get:
@@ -58,15 +76,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.TokenResponse'
+            $ref: '#/definitions/domain.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/domain.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/domain.Response'
       summary: Refresh
       tags:
       - auth
@@ -89,15 +107,15 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.StatusResponse'
+            $ref: '#/definitions/domain.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/domain.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/domain.Response'
       summary: SignIn
       tags:
       - auth
@@ -120,16 +138,89 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.StatusResponse'
+            $ref: '#/definitions/domain.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/domain.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/domain.ErrorResponse'
+            $ref: '#/definitions/domain.Response'
       summary: SignUp
       tags:
       - auth
+  /s3/files:
+    get:
+      description: Get list of files from S3
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.File'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/domain.Response'
+      security:
+      - JWT: []
+      summary: Get list of files from S3
+      tags:
+      - files
+  /s3/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: upload picture
+      parameters:
+      - description: file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/domain.Response'
+      security:
+      - JWT: []
+      summary: Upload picture to S3
+      tags:
+      - files
+securityDefinitions:
+  JWT:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
