@@ -1,6 +1,6 @@
 serverListener:
   tcp:
-    host: "127.0.0.1"
+    host: gnp
     port: 8080
 
 file:
