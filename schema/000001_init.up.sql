@@ -16,10 +16,9 @@ create table refresh_tokens(
 
 create table files (
  id           serial not null unique,
- user_id      int references users (id) on delete cascade not null,
- name         varchar(255) not null,
- size         int not null,
- type         varchar(20) not null,
- content_type varchar(20) not null,
- upload_at    timestamp not null default now()
+ filename     varchar(255) not null,
+ filesize     int not null,
+ ext_id       int not null,
+ author_id    int references users (id) on delete cascade not null,
+ created_at   timestamp not null default now()
 );
