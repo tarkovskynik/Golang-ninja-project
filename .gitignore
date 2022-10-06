@@ -1,5 +1,2 @@
 .idea
 .env
-.vscode
-.database
-cmd/config/
