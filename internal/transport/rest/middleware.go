@@ -2,11 +2,11 @@ package rest
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
-	"net/http"
-	"strings"
 
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
 )
@@ -22,16 +22,18 @@ func (h *Handler) getTokenFromRequest(c *gin.Context) (string, error) {
 		return "", domain.ErrEmptyAuthHeader
 	}
 
-	headerParts := strings.Split(header, " ")
-	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		return "", domain.ErrInvalidAuthHeader
-	}
+	// headerParts := strings.Split(header, " ")
+	// if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+	// 	return "", domain.ErrInvalidAuthHeader
+	// }
 
-	if len(headerParts[1]) == 0 {
-		return "", domain.ErrEmptyToken
-	}
+	// if len(headerParts[1]) == 0 {
+	// 	return "", domain.ErrEmptyToken
+	// }
 
-	return headerParts[1], nil
+	// return headerParts[1], nil
+
+	return header, nil
 }
 
 func (h *Handler) authMiddleware() gin.HandlerFunc {

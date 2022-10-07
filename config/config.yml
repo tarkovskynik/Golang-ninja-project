@@ -4,10 +4,21 @@ serverListener:
     port: 8080
 
 file:
-    size: 10
-    extensions:
-               png
-               jpg
+  size: 10
+  extensions:
+              png
+              jpg
+  storage:
+    EndPoint: "127.0.0.1:9000"
+    AccessKeyID: "ROOTUSER"
+    SecretAccessKey: "CHANGEME123"
+    UseSSL: false
+    BucketName: "s3-file-storage"
+    Location: "us-east-1"
+  maxUploadSize: 10
+  types:
+              - "image/jpeg"
+              - "image/png"
 
 auth:
   access_token_ttl: 15m

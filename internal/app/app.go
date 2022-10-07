@@ -8,26 +8,19 @@ import (
 
 	"github.com/tarkovskynik/Golang-ninja-project/internal/config"
 	"github.com/tarkovskynik/Golang-ninja-project/internal/repository/psql"
+
+	s3repo "github.com/tarkovskynik/Golang-ninja-project/internal/repository/s3"
 	"github.com/tarkovskynik/Golang-ninja-project/internal/service"
 	"github.com/tarkovskynik/Golang-ninja-project/internal/transport/rest"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/database"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/hash"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
+	"github.com/tarkovskynik/Golang-ninja-project/pkg/s3"
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/server/http"
 
 	_ "github.com/lib/pq"
 )
 
-// @title File Manager App API
-// @version 1.0
-// @description API Server for File Manager Application
-
-// @host localhost:8080
-// @BasePath /
-
-// @securityDefinitions.apikey JWT
-// @in header
-// @name Authorization
 func init() {
 	logger.InitLogParams()
 }
@@ -48,7 +41,21 @@ func Run(configDir string) {
 	hasher := hash.NewSHA1Hasher(cfg.Auth.Salt)
 	usersService := service.NewUsers(usersRepo, tokensRepo, hasher, []byte(cfg.Auth.Secret), cfg.Auth.AccessTokenTTL, cfg.Auth.RefreshTokenTTL)
 
-	handler := rest.NewHandler(usersService)
+	cfg.File.MaxUploadSize = cfg.File.MaxUploadSize << 20 // 10 megabytes = 10 << 20
+	cfg.File.CheckTypes = make(map[string]interface{})    // "image/jpeg": nil, "image/png": nil, ...
+	for _, t := range cfg.File.Types {
+		cfg.File.CheckTypes[t] = nil
+	}
+
+	filesRepo := psql.NewFiles(db)
+	s3, err := s3.NewFileStorage(context.Background(), cfg.File.Storage)
+	if err != nil {
+		logger.Fatalf("error occurred while running s3 server: %s", err.Error())
+	}
+	s3FilesStorage := s3repo.NewS3FilesStorage(s3)
+	filesService := service.NewServiceFiles(filesRepo, s3FilesStorage)
+
+	handler := rest.NewHandler(usersService, filesService, cfg.File.MaxUploadSize, cfg.File.CheckTypes)
 	server := http.NewServer()
 
 	go func() {

@@ -2,13 +2,14 @@ package rest
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 	"time"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "github.com/tarkovskynik/Golang-ninja-project/docs"
 )
 
@@ -20,13 +21,25 @@ type Users interface {
 	GetRefreshTokenTTL() time.Duration
 }
 
-type Handler struct {
-	usersService Users
+type FilesServece interface {
+	Upload(ctx context.Context, input domain.File) (string, error)
+	GetFiles(ctx context.Context, id int) ([]domain.File, error)
+	StoreFileInfo(ctx context.Context, input domain.File) error
 }
 
-func NewHandler(users Users) *Handler {
+type Handler struct {
+	usersService      Users
+	filesService      FilesServece
+	maxUploadFileSize int64
+	fileTypes         map[string]interface{}
+}
+
+func NewHandler(users Users, files FilesServece, maxUploadFileSize int64, fileTypes map[string]interface{}) *Handler {
 	return &Handler{
-		usersService: users,
+		usersService:      users,
+		filesService:      files,
+		maxUploadFileSize: maxUploadFileSize,
+		fileTypes:         fileTypes,
 	}
 }
 
@@ -41,11 +54,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		usersApi.GET("/refresh", h.refresh)
 	}
 
-	//filesApi := router.Group("")
-	//filesApi.Use(h.authMiddleware())
-	//{
-	//	filesApi.POST("/upload")
-	//	filesApi.GET("/files")
-	//}
+	filesApi := router.Group("/s3")
+	filesApi.Use(h.authMiddleware())
+	{
+		filesApi.POST("/upload", h.fileUploadS3)
+		filesApi.GET("/files", h.getFilesS3)
+	}
+
 	return router
 }
