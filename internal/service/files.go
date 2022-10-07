@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
-
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
 )
 
