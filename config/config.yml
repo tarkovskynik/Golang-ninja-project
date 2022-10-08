@@ -1,15 +1,11 @@
 serverListener:
   tcp:
-    host: "127.0.0.1"
+    host: "gnp"
     port: 8080
 
 file:
-  size: 10
-  extensions:
-              png
-              jpg
   storage:
-    EndPoint: "127.0.0.1:9000"
+    EndPoint: "minio1:9000"
     AccessKeyID: "ROOTUSER"
     SecretAccessKey: "CHANGEME123"
     UseSSL: false
