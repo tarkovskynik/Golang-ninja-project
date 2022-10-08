@@ -18,3 +18,7 @@ var ErrUserCredNotFound = errors.New("user with such credentials not found")
 var ErrUserInputParam = errors.New("invalid user input param")
 var ErrCantCreateUser = errors.New("can't create user")
 var ErrSearchUserError = errors.New("search user error")
+
+var ErrorFileType = errors.New("file type is not supported")
+var ErrorCreateTempFile = errors.New("failed to create temp file")
+var ErrorWriteTempFile = errors.New("failed to write chunk to temp file")

@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  gnp:
+    build:
+      dockerfile: Dockerfile
+    command: sh -c "/wait && ./gnp"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - posgresdb
+    environment:
+      - DB_HOST=posgresdb
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_NAME=postgres
+      - DB_SSLMODE=disable
+      - DB_PASSWORD=postgres
+      - WAIT_HOSTS=posgresdb:5432
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=30
+      - WAIT_HOST_CONNECT_TIMEOUT=30
+      - AUTH_SALT=yRu376r2g742gye67q3r76
+      - AUTH_SECRET=we32r2t34
+  posgresdb:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"

@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/logger"
-	"github.com/tarkovskynik/Golang-ninja-project/pkg/s3"
-
 	"github.com/tarkovskynik/Golang-ninja-project/internal/domain"
 )
 
@@ -14,27 +12,28 @@ type FilesRepository interface {
 	StoreFileInfo(ctx context.Context, input domain.File) error
 }
 
-type FilesServece struct {
-	filesRepo FilesRepository
-	storage   *s3.FileStorage
+type S3FilesStorage interface {
+	Upload(ctx context.Context, input domain.File) (string, error)
+	GenerateFileURL(ctx context.Context, filename string) (string, error)
 }
 
-func NewServeceFiles(filesRepo FilesRepository, storage *s3.FileStorage) *FilesServece {
-	return &FilesServece{
+type FilesService struct {
+	filesRepo FilesRepository
+	storage   S3FilesStorage
+}
+
+func NewServiceFiles(filesRepo FilesRepository, storage S3FilesStorage) *FilesService {
+	return &FilesService{
 		filesRepo: filesRepo,
 		storage:   storage,
 	}
 }
 
-func (s *FilesServece) Upload(ctx context.Context, input domain.File) (string, error) {
-	return s.storage.Upload(ctx,
-		s3.UploadInput{Name: input.Name,
-			FilePath:    "/" + input.Name,
-			ContentType: input.ContentType,
-		})
+func (s *FilesService) Upload(ctx context.Context, input domain.File) (string, error) {
+	return s.storage.Upload(ctx, input)
 }
 
-func (s *FilesServece) GetFiles(ctx context.Context, id int) ([]domain.File, error) {
+func (s *FilesService) GetFiles(ctx context.Context, id int) ([]domain.File, error) {
 	files, err := s.filesRepo.GetFiles(ctx, id)
 	if err != nil {
 		return nil, err
@@ -43,13 +42,13 @@ func (s *FilesServece) GetFiles(ctx context.Context, id int) ([]domain.File, err
 	for i := 0; i < len(files); i++ {
 		files[i].URL, err = s.storage.GenerateFileURL(ctx, files[i].Name)
 		if err != nil {
-			logger.LogError("ServeceFiles.GetFiles", err)
+			logger.LogError("ServiceFiles.GetFiles", err)
 		}
 	}
 
 	return files, nil
 }
 
-func (s *FilesServece) StoreFileInfo(ctx context.Context, input domain.File) error {
+func (s *FilesService) StoreFileInfo(ctx context.Context, input domain.File) error {
 	return s.filesRepo.StoreFileInfo(ctx, input)
 }

@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/tarkovskynik/Golang-ninja-project/pkg/s3"
+)
 
 type NetServerConfig struct {
 	Host string
@@ -8,12 +12,12 @@ type NetServerConfig struct {
 }
 
 type PostgresConfig struct {
-	Host     string
-	Port     int
-	Username string
-	Name     string
-	SSLMode  string
-	Password string
+	Host     string `envconfig:"Host"`
+	Port     int    `envconfig:"Port"`
+	Username string `envconfig:"Username"`
+	Name     string `envconfig:"Name"`
+	SSLMode  string `envconfig:"SSLMode"`
+	Password string `envconfig:"Password"`
 }
 
 type AuthConfig struct {
@@ -24,8 +28,10 @@ type AuthConfig struct {
 }
 
 type FileConfig struct {
-	Size       int
-	Extensions []string
+	Storage       s3.ConfigFileStorage
+	MaxUploadSize int64                  // 10 megabytes = 10 << 20
+	CheckTypes    map[string]interface{} // "image/jpeg": nil, "image/png": nil, ...
+	Types         []string
 }
 
 type Config struct {
