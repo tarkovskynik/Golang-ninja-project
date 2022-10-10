@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tarkovskynik/Golang-ninja-project/pkg/s3"
 
@@ -19,7 +20,7 @@ func NewS3FilesStorage(storage *s3.FileStorage) *S3FilesStorage {
 func (r *S3FilesStorage) Upload(ctx context.Context, input domain.File) (string, error) {
 	return r.storage.Upload(ctx,
 		s3.UploadInput{Name: input.Name,
-			FilePath:    "/" + input.Name,
+			FilePath:    fmt.Sprintf("temp.file.%d-%s", input.UserID, input.Name),
 			ContentType: input.ContentType,
 		})
 }
